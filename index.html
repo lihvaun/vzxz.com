@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Device App Expense Tracker</title>
+  <style>
+    :root {
+      --bg: #070a12;
+      --panel: rgba(18, 24, 38, 0.92);
+      --panel2: rgba(12, 17, 29, 0.95);
+      --line: rgba(255,255,255,.1);
+      --text: #eef4ff;
+      --muted: #8d9ab5;
+      --accent: #7cf7c9;
+      --accent2: #83a7ff;
+      --danger: #ff6d7a;
+      --warn: #ffd166;
+      --good: #7cf7c9;
+      --shadow: 0 18px 60px rgba(0,0,0,.45);
+      --radius: 20px;
+      --radius2: 14px;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(124,247,201,.16), transparent 34%),
+        radial-gradient(circle at 75% 0%, rgba(131,167,255,.18), transparent 32%),
+        linear-gradient(145deg, #050711, #0b1020 46%, #050711);
+      min-height: 100vh;
+      padding: max(16px, env(safe-area-inset-top)) 14px max(24px, env(safe-area-inset-bottom));
+    }
+
+    .wrap { max-width: 1180px; margin: 0 auto; }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      align-items: flex-start;
+      margin: 10px 0 16px;
+    }
+
+    .title h1 {
+      margin: 0;
+      font-size: clamp(1.55rem, 4vw, 2.6rem);
+      letter-spacing: -0.05em;
+      line-height: 1;
+    }
+
+    .title p {
+      margin: 9px 0 0;
+      color: var(--muted);
+      font-size: .95rem;
+      line-height: 1.4;
+    }
+
+    .badge {
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.06);
+      border-radius: 999px;
+      padding: 9px 12px;
+      color: var(--accent);
+      white-space: nowrap;
+      font-size: .82rem;
+      font-weight: 700;
+      box-shadow: var(--shadow);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1.05fr .95fr;
+      gap: 14px;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+      overflow: hidden;
+    }
+
+    .card-inner { padding: 16px; }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .section-title h2 {
+      margin: 0;
+      font-size: 1rem;
+      letter-spacing: -.02em;
+    }
+
+    .tabs {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .tab {
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.045);
+      color: var(--text);
+      border-radius: 14px;
+      padding: 11px 9px;
+      font-weight: 800;
+      cursor: pointer;
+      min-height: 44px;
+    }
+
+    .tab.active {
+      border-color: rgba(124,247,201,.5);
+      background: linear-gradient(135deg, rgba(124,247,201,.18), rgba(131,167,255,.12));
+      color: var(--accent);
+    }
+
+    form {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    label {
+      display: grid;
+      gap: 6px;
+      color: var(--muted);
+      font-size: .78rem;
+      font-weight: 800;
+      letter-spacing: .02em;
+      text-transform: uppercase;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      min-height: 44px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.055);
+      color: var(--text);
+      border-radius: 13px;
+      padding: 11px 12px;
+      outline: none;
+      font: inherit;
+      font-size: .94rem;
+    }
+
+    select option { background: #101727; color: var(--text); }
+    textarea { resize: vertical; min-height: 76px; grid-column: 1 / -1; }
+    .full { grid-column: 1 / -1; }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: rgba(124,247,201,.55);
+      box-shadow: 0 0 0 3px rgba(124,247,201,.1);
+    }
+
+    .btn-row {
+      grid-column: 1 / -1;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 2px;
+    }
+
+    button, .file-btn {
+      border: 1px solid var(--line);
+      color: var(--text);
+      background: rgba(255,255,255,.07);
+      border-radius: 14px;
+      padding: 11px 13px;
+      min-height: 44px;
+      font-weight: 900;
+      cursor: pointer;
+      font: inherit;
+    }
+
+    .primary {
+      background: linear-gradient(135deg, rgba(124,247,201,.95), rgba(131,167,255,.9));
+      color: #06101a;
+      border: 0;
+    }
+
+    .danger { color: var(--danger); }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    .stat {
+      background: rgba(255,255,255,.055);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 13px;
+      min-height: 84px;
+    }
+
+    .stat span {
+      display: block;
+      color: var(--muted);
+      font-size: .78rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .02em;
+      margin-bottom: 7px;
+    }
+
+    .stat strong {
+      font-size: 1.35rem;
+      letter-spacing: -.04em;
+    }
+
+    .good { color: var(--good); }
+    .warn { color: var(--warn); }
+    .bad { color: var(--danger); }
+
+    .table-wrap {
+      overflow: auto;
+      max-height: 470px;
+      border-top: 1px solid var(--line);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 900px;
+    }
+
+    th, td {
+      padding: 11px 10px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+      font-size: .88rem;
+    }
+
+    th {
+      color: var(--muted);
+      font-size: .74rem;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      background: rgba(8, 12, 22, .94);
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.055);
+      border-radius: 999px;
+      padding: 5px 8px;
+      font-size: .75rem;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+      border-top: 1px solid var(--line);
+      background: var(--panel2);
+    }
+
+    .toolbar-left, .toolbar-right { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .toolbar input, .toolbar select { max-width: 190px; }
+
+    .device-total-list, .app-total-list {
+      display: grid;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .mini-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.045);
+      border-radius: 14px;
+      padding: 10px 11px;
+      align-items: center;
+    }
+
+    .mini-row small { display: block; color: var(--muted); margin-top: 2px; }
+    .mini-row strong { color: var(--accent); }
+
+    .hidden-file { display: none; }
+
+    @media (max-width: 850px) {
+      header { display: block; }
+      .badge { display: inline-block; margin-top: 12px; }
+      .grid { grid-template-columns: 1fr; }
+      form { grid-template-columns: 1fr; }
+      .summary-grid { grid-template-columns: 1fr 1fr; }
+      .toolbar { align-items: stretch; }
+      .toolbar-left, .toolbar-right { width: 100%; }
+      .toolbar input, .toolbar select, .toolbar button, .file-btn { flex: 1; max-width: none; }
+    }
+
+    @media (max-width: 480px) {
+      body { padding-left: 10px; padding-right: 10px; }
+      .tabs { grid-template-columns: 1fr; }
+      .summary-grid { grid-template-columns: 1fr; }
+      .card-inner { padding: 13px; }
+      button, .file-btn { width: 100%; }
+      .btn-row button { width: auto; flex: 1; }
+    }
+
+    @media print {
+      body { background: #fff; color: #111; }
+      .card, .stat, .mini-row { box-shadow: none; background: #fff; border-color: #ddd; }
+      .toolbar, form, .tabs, .badge { display: none; }
+      th { color: #111; background: #eee; }
+      td, th { border-color: #ddd; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="title">
+        <h1>Device App Expense Tracker</h1>
+        <p>Track app spending, payouts, refunds, pending items, and disputes across your white iPhone, black iPhone, and Android tablet.</p>
+      </div>
+      <div class="badge" id="saveStatus">Saved locally</div>
+    </header>
+
+    <div class="grid">
+      <section class="card">
+        <div class="card-inner">
+          <div class="section-title">
+            <h2>Add / Edit Entry</h2>
+            <span class="pill" id="activeDevicePill">iPhone - White</span>
+          </div>
+
+          <div class="tabs" id="deviceTabs"></div>
+
+          <form id="expenseForm">
+            <input type="hidden" id="editId" />
+            <label>Date
+              <input id="date" type="date" required />
+            </label>
+            <label>Device
+              <select id="device" required></select>
+            </label>
+            <label>App / Platform
+              <select id="app" required></select>
+            </label>
+            <label>Custom App Name
+              <input id="customApp" type="text" placeholder="Use when App is Other" />
+            </label>
+            <label>Type
+              <select id="type" required>
+                <option>Expense</option>
+                <option>Payout</option>
+                <option>Refund / Credit</option>
+                <option>Bonus</option>
+              </select>
+            </label>
+            <label>Category
+              <select id="category" required>
+                <option>Deposit</option>
+                <option>In-app Purchase</option>
+                <option>Subscription</option>
+                <option>Offer Requirement</option>
+                <option>Payout</option>
+                <option>Refund</option>
+                <option>Bonus</option>
+                <option>Other</option>
+              </select>
+            </label>
+            <label>Amount
+              <input id="amount" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00" required />
+            </label>
+            <label>Status
+              <select id="status" required>
+                <option>Paid</option>
+                <option>Pending</option>
+                <option>Disputed</option>
+                <option>Completed</option>
+              </select>
+            </label>
+            <label>Payment / Cashout Method
+              <select id="method">
+                <option>Apple Pay</option>
+                <option>Google Play</option>
+                <option>Debit Card</option>
+                <option>Credit Card</option>
+                <option>PayPal</option>
+                <option>Stake</option>
+                <option>Gift Card</option>
+                <option>Other</option>
+              </select>
+            </label>
+            <label>Offer / Game / Task
+              <input id="offer" type="text" placeholder="Example: Level 10 offer, cashout, spins" />
+            </label>
+            <label class="full">Notes
+              <textarea id="notes" placeholder="Tracking details, proof, screenshots location, expected credit, etc."></textarea>
+            </label>
+            <div class="btn-row">
+              <button class="primary" type="submit">Save Entry</button>
+              <button type="button" id="resetForm">Clear Form</button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <aside class="card">
+        <div class="card-inner">
+          <div class="section-title">
+            <h2>Totals</h2>
+            <span class="pill" id="entryCount">0 entries</span>
+          </div>
+
+          <div class="summary-grid">
+            <div class="stat"><span>Net Profit / Loss</span><strong id="netTotal">$0.00</strong></div>
+            <div class="stat"><span>Total Spent</span><strong class="bad" id="spentTotal">$0.00</strong></div>
+            <div class="stat"><span>Total Payouts</span><strong class="good" id="payoutTotal">$0.00</strong></div>
+            <div class="stat"><span>Pending</span><strong class="warn" id="pendingTotal">$0.00</strong></div>
+          </div>
+
+          <div class="section-title" style="margin-top:16px;margin-bottom:0;">
+            <h2>By Device</h2>
+          </div>
+          <div class="device-total-list" id="deviceTotals"></div>
+
+          <div class="section-title" style="margin-top:16px;margin-bottom:0;">
+            <h2>By App / Platform</h2>
+          </div>
+          <div class="app-total-list" id="appTotals"></div>
+        </div>
+      </aside>
+    </div>
+
+    <section class="card" style="margin-top:14px;">
+      <div class="card-inner">
+        <div class="section-title">
+          <h2>Expense Log</h2>
+          <span class="pill">Local browser storage</span>
+        </div>
+      </div>
+
+      <div class="toolbar">
+        <div class="toolbar-left">
+          <input id="search" type="search" placeholder="Search entries" />
+          <select id="filterDevice"><option value="All">All devices</option></select>
+          <select id="filterApp"><option value="All">All apps</option></select>
+        </div>
+        <div class="toolbar-right">
+          <button id="exportCsv" type="button">Export CSV</button>
+          <button id="exportJson" type="button">Backup JSON</button>
+          <label class="file-btn" for="importJson">Import JSON</label>
+          <input class="hidden-file" id="importJson" type="file" accept="application/json" />
+          <button class="danger" id="clearAll" type="button">Clear All</button>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Device</th>
+              <th>App</th>
+              <th>Type</th>
+              <th>Category</th>
+              <th>Amount</th>
+              <th>Status</th>
+              <th>Method</th>
+              <th>Offer / Notes</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'deviceAppExpenseTracker.v1';
+    const devices = ['iPhone - White', 'iPhone - Black', 'Android Tablet'];
+    const apps = ['Freecash', 'JustPlay', 'BestPlay', 'Gamefa', 'CashCow', 'FeaturePoints', 'Other / Add Later'];
+
+    let activeDevice = devices[0];
+    let entries = loadEntries();
+
+    const $ = id => document.getElementById(id);
+    const money = value => Number(value || 0).toLocaleString(undefined, { style: 'currency', currency: 'USD' });
+    const today = () => new Date().toISOString().slice(0, 10);
+
+    function loadEntries() {
+      try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
+      catch { return []; }
+    }
+
+    function saveEntries() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+      $('saveStatus').textContent = 'Saved locally';
+      setTimeout(() => $('saveStatus').textContent = 'Saved locally', 700);
+    }
+
+    function signedAmount(entry) {
+      const amount = Number(entry.amount || 0);
+      if (entry.type === 'Expense') return -amount;
+      return amount;
+    }
+
+    function appName(entry) {
+      return entry.app === 'Other / Add Later' && entry.customApp ? entry.customApp.trim() : entry.app;
+    }
+
+    function fillSelect(select, list) {
+      select.innerHTML = '';
+      list.forEach(item => {
+        const option = document.createElement('option');
+        option.value = item;
+        option.textContent = item;
+        select.appendChild(option);
+      });
+    }
+
+    function init() {
+      fillSelect($('device'), devices);
+      fillSelect($('app'), apps);
+      fillSelect($('filterDevice'), ['All', ...devices]);
+      fillSelect($('filterApp'), ['All', ...apps]);
+      $('date').value = today();
+      $('device').value = activeDevice;
+      renderTabs();
+      render();
+    }
+
+    function renderTabs() {
+      const tabs = $('deviceTabs');
+      tabs.innerHTML = '';
+      devices.forEach(device => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'tab' + (device === activeDevice ? ' active' : '');
+        btn.textContent = device.replace(' - ', '\n');
+        btn.onclick = () => {
+          activeDevice = device;
+          $('device').value = device;
+          $('activeDevicePill').textContent = device;
+          renderTabs();
+          render();
+        };
+        tabs.appendChild(btn);
+      });
+    }
+
+    function getFilteredEntries() {
+      const q = $('search').value.trim().toLowerCase();
+      const fDevice = $('filterDevice').value;
+      const fApp = $('filterApp').value;
+      return entries.filter(e => {
+        const text = [e.date, e.device, appName(e), e.type, e.category, e.status, e.method, e.offer, e.notes].join(' ').toLowerCase();
+        const deviceOk = fDevice === 'All' || e.device === fDevice;
+        const appOk = fApp === 'All' || e.app === fApp;
+        const searchOk = !q || text.includes(q);
+        return deviceOk && appOk && searchOk;
+      }).sort((a,b) => (b.date || '').localeCompare(a.date || ''));
+    }
+
+    function render() {
+      renderRows();
+      renderTotals();
+    }
+
+    function renderRows() {
+      const tbody = $('rows');
+      const filtered = getFilteredEntries();
+      tbody.innerHTML = '';
+      if (!filtered.length) {
+        tbody.innerHTML = '<tr><td colspan="10" style="color:var(--muted);padding:18px;">No entries yet.</td></tr>';
+        return;
+      }
+      filtered.forEach(e => {
+        const tr = document.createElement('tr');
+        const amtClass = signedAmount(e) >= 0 ? 'good' : 'bad';
+        tr.innerHTML = `
+          <td>${escapeHtml(e.date)}</td>
+          <td><span class="pill">${escapeHtml(e.device)}</span></td>
+          <td>${escapeHtml(appName(e))}</td>
+          <td>${escapeHtml(e.type)}</td>
+          <td>${escapeHtml(e.category)}</td>
+          <td class="${amtClass}"><strong>${money(signedAmount(e))}</strong></td>
+          <td>${escapeHtml(e.status)}</td>
+          <td>${escapeHtml(e.method || '')}</td>
+          <td><strong>${escapeHtml(e.offer || '')}</strong><br><small style="color:var(--muted);">${escapeHtml(e.notes || '')}</small></td>
+          <td>
+            <button type="button" onclick="editEntry('${e.id}')">Edit</button>
+            <button type="button" class="danger" onclick="deleteEntry('${e.id}')">Delete</button>
+          </td>`;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function renderTotals() {
+      const spent = entries.filter(e => e.type === 'Expense').reduce((s,e) => s + Number(e.amount || 0), 0);
+      const payouts = entries.filter(e => e.type !== 'Expense').reduce((s,e) => s + Number(e.amount || 0), 0);
+      const pending = entries.filter(e => e.status === 'Pending').reduce((s,e) => s + Math.abs(Number(e.amount || 0)), 0);
+      const net = entries.reduce((s,e) => s + signedAmount(e), 0);
+
+      $('spentTotal').textContent = money(spent);
+      $('payoutTotal').textContent = money(payouts);
+      $('pendingTotal').textContent = money(pending);
+      $('netTotal').textContent = money(net);
+      $('netTotal').className = net >= 0 ? 'good' : 'bad';
+      $('entryCount').textContent = `${entries.length} entr${entries.length === 1 ? 'y' : 'ies'}`;
+
+      renderGroupTotals('deviceTotals', devices, e => e.device);
+      const appKeys = [...new Set([...apps, ...entries.map(appName)])];
+      renderGroupTotals('appTotals', appKeys, appName, true);
+    }
+
+    function renderGroupTotals(targetId, keys, getter, hideZero = false) {
+      const el = $(targetId);
+      el.innerHTML = '';
+      keys.forEach(key => {
+        const group = entries.filter(e => getter(e) === key);
+        const net = group.reduce((s,e) => s + signedAmount(e), 0);
+        const spent = group.filter(e => e.type === 'Expense').reduce((s,e) => s + Number(e.amount || 0), 0);
+        if (hideZero && !group.length) return;
+        const div = document.createElement('div');
+        div.className = 'mini-row';
+        div.innerHTML = `<div>${escapeHtml(key)}<small>Spent: ${money(spent)} · Entries: ${group.length}</small></div><strong>${money(net)}</strong>`;
+        el.appendChild(div);
+      });
+      if (!el.innerHTML) el.innerHTML = '<div class="mini-row"><div>No app totals yet.</div><strong>$0.00</strong></div>';
+    }
+
+    function clearForm() {
+      $('expenseForm').reset();
+      $('editId').value = '';
+      $('date').value = today();
+      $('device').value = activeDevice;
+    }
+
+    $('expenseForm').addEventListener('submit', event => {
+      event.preventDefault();
+      const id = $('editId').value || crypto.randomUUID();
+      const data = {
+        id,
+        date: $('date').value,
+        device: $('device').value,
+        app: $('app').value,
+        customApp: $('customApp').value.trim(),
+        type: $('type').value,
+        category: $('category').value,
+        amount: Number($('amount').value || 0),
+        status: $('status').value,
+        method: $('method').value,
+        offer: $('offer').value.trim(),
+        notes: $('notes').value.trim(),
+        updatedAt: new Date().toISOString()
+      };
+      const index = entries.findIndex(e => e.id === id);
+      if (index >= 0) entries[index] = data; else entries.push(data);
+      activeDevice = data.device;
+      saveEntries();
+      clearForm();
+      renderTabs();
+      render();
+    });
+
+    function editEntry(id) {
+      const e = entries.find(x => x.id === id);
+      if (!e) return;
+      $('editId').value = e.id;
+      $('date').value = e.date;
+      $('device').value = e.device;
+      $('app').value = e.app;
+      $('customApp').value = e.customApp || '';
+      $('type').value = e.type;
+      $('category').value = e.category;
+      $('amount').value = e.amount;
+      $('status').value = e.status;
+      $('method').value = e.method || 'Other';
+      $('offer').value = e.offer || '';
+      $('notes').value = e.notes || '';
+      activeDevice = e.device;
+      $('activeDevicePill').textContent = activeDevice;
+      renderTabs();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function deleteEntry(id) {
+      if (!confirm('Delete this entry?')) return;
+      entries = entries.filter(e => e.id !== id);
+      saveEntries();
+      render();
+    }
+
+    $('resetForm').onclick = clearForm;
+    $('search').oninput = renderRows;
+    $('filterDevice').onchange = renderRows;
+    $('filterApp').onchange = renderRows;
+    $('device').onchange = () => {
+      activeDevice = $('device').value;
+      $('activeDevicePill').textContent = activeDevice;
+      renderTabs();
+    };
+
+    $('exportCsv').onclick = () => {
+      const header = ['Date','Device','App','Type','Category','Amount','Signed Amount','Status','Method','Offer','Notes'];
+      const lines = [header, ...entries.map(e => [e.date, e.device, appName(e), e.type, e.category, e.amount, signedAmount(e), e.status, e.method, e.offer, e.notes])]
+        .map(row => row.map(cell => `"${String(cell ?? '').replaceAll('"', '""')}"`).join(','));
+      downloadFile(lines.join('\n'), 'device-app-expense-tracker.csv', 'text/csv');
+    };
+
+    $('exportJson').onclick = () => {
+      downloadFile(JSON.stringify({ exportedAt: new Date().toISOString(), entries }, null, 2), 'device-app-expense-tracker-backup.json', 'application/json');
+    };
+
+    $('importJson').onchange = async event => {
+      const file = event.target.files[0];
+      if (!file) return;
+      try {
+        const text = await file.text();
+        const parsed = JSON.parse(text);
+        const incoming = Array.isArray(parsed) ? parsed : parsed.entries;
+        if (!Array.isArray(incoming)) throw new Error('Invalid backup file');
+        const byId = new Map(entries.map(e => [e.id, e]));
+        incoming.forEach(e => byId.set(e.id || crypto.randomUUID(), { ...e, id: e.id || crypto.randomUUID() }));
+        entries = [...byId.values()];
+        saveEntries();
+        render();
+        alert('Import complete.');
+      } catch (err) {
+        alert('Import failed. Use a JSON backup from this tracker.');
+      }
+      event.target.value = '';
+    };
+
+    $('clearAll').onclick = () => {
+      if (!confirm('Clear all tracker data on this device? Export a backup first if needed.')) return;
+      entries = [];
+      saveEntries();
+      render();
+    };
+
+    function downloadFile(content, filename, type) {
+      const blob = new Blob([content], { type });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+    }
+
+    init();
+  </script>
+</body>
+</html>
